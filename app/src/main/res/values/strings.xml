@@ -1,0 +1,41 @@
+<resources>
+
+    <string name="app_name">EchoNote</string>
+    <string name="app_logo">App Logo</string>
+    <string name="welcome">"WELCOME!"</string>
+    <string name="login_heading">Please Log In.</string>
+    <string name="continue_google">Continue With Google</string>
+    <string name="alt_OR">OR</string>
+    <string name="prompt_email">Email</string>
+    <string name="prompt_password">Password</string>
+    <string name="forgot_password">Forgot Password?</string>
+    <string name="action_sign_in_short">Sign In</string>
+    <string name="account_sign_up">Don\'t Have An Account? Sign Up </string>
+    <string name="skip">PROCEED AS GUEST</string>
+    <string name="alt_google_login">Alternative Google Login</string>
+    <string name="sign_in_vector">Sign In Icon</string>
+
+    <string name="close_button">Close Button</string>
+    <string name="register_vector">Register Icon</string>
+    <string name="create_account">Create An Account</string>
+    <string name="name_prompt">Full Name</string>
+    <string name="enter_password_prompt">Enter Password</string>
+    <string name="confirm_password_prompt">Confirm Password</string>
+    <string name="sign_up">Sign up</string>
+
+    <string name="reset_pass">Reset Password</string>
+    <string name="reg_email">Enter Registered Email</string>
+    <string name="submit">Submit</string>
+    <string name="sign_in_link">Sign In Link</string>
+
+    <string name="profile_pic">EchoNote Profile Picture</string>
+    <string name="guest_user">Hi, Guest User</string>
+    <string name="my_notes">My Notes</string>
+    <string name="search">Search</string>
+    <string name="categories">Note Categories</string>
+    <string name="notes_grid">Notes Grid View</string>
+    <string name="no_notes_placeholder">✨ No notes yet! Tap + to add your first note.</string>
+    <string name="navigation_bar_home_button">Navigation Bar Home Button</string>
+    <string name="navbar_add_note_button">Navigation Bar Add Note Button</string>
+    <string name="generate_text">Generate Text Using AI to save as Note</string>
+</resources>
