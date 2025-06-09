@@ -15,6 +15,7 @@
         android:layout_height="48dp"
         android:contentDescription="@string/app_logo"
         android:transitionName="shared_logo"
+        android:paddingStart="6dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@mipmap/ic_launcher" />
