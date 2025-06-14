@@ -38,4 +38,20 @@
     <string name="navigation_bar_home_button">Navigation Bar Home Button</string>
     <string name="navbar_add_note_button">Navigation Bar Add Note Button</string>
     <string name="generate_text">Generate Text Using AI to save as Note</string>
+
+    <string name="add_note">Add Note</string>
+    <string name="edit_note">Edit Note</string>
+    <string name="title">Title</string>
+    <string name="set_note_category">Set Note Category (Default: None)</string>
+    <string name="content">Content</string>
+    <string name="save_note_button">Save Note Button</string>
+    <string name="add_numbering">Add Numbering</string>
+    <string name="add_bullets">Add Bullets</string>
+    <string name="attach_image">Attach Image or Document</string>
+    <string name="take_photo">Take or Add Photo to Note</string>
+    <string name="note_image">Note Image</string>
+    <string name="note_title">Note Title</string>
+    <string name="category">Category</string>
+    <string name="note_content_preview">Note content preview goes here, showing up to 3 lines only for clean layout.</string>
+
 </resources>

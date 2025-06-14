@@ -47,7 +47,7 @@ public class GoogleSignInHelper {
 
     public GoogleSignInHelper(Activity activity) {
         this.activity = activity;
-        this.context = activity.getApplicationContext();
+        this.context = activity;
         this.credentialManager = CredentialManager.create(context);
         this.mAuth = FirebaseAuth.getInstance();
         this.executor = Executors.newSingleThreadExecutor();
@@ -80,10 +80,14 @@ public class GoogleSignInHelper {
 
                     @Override
                     public void onError(@NonNull GetCredentialException e) {
-                        Log.e(TAG, "GetCredential error: " + e.getLocalizedMessage());
-                        mainHandler.post(() -> callback.onSignInFailure(
-                                "Google sign-in failed: " +
-                                        e.getLocalizedMessage()));
+                        String message = e.getLocalizedMessage();
+                        Log.e(TAG, "GetCredential error: " + message);
+
+                        if (message != null && message.toLowerCase().contains("cancel")) {
+                            mainHandler.post(() -> callback.onSignInFailure("Sign-in cancelled by user"));
+                        } else {
+                            mainHandler.post(() -> callback.onSignInFailure("Google sign-in failed " + message));
+                        }
                     }
                 }
         );

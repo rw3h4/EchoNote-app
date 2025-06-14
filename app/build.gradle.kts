@@ -14,12 +14,12 @@ plugins {
 
 android {
     namespace = "org.rw3h4.echonote"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "org.rw3h4.echonote"
-        minSdk = 24
-        targetSdk = 35
+        minSdk = 26
+        targetSdk = 36
         versionCode = 1
         versionName = "1.0"
 
@@ -48,6 +48,8 @@ android {
 
 dependencies {
 
+    val room_version = "2.7.1"
+
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)
@@ -67,6 +69,10 @@ dependencies {
     // Google ID & Services
     implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
     implementation("com.google.android.gms:play-services-auth:21.3.0")
+
+    //Room Database
+    implementation("androidx.room:room-runtime:$room_version")
+    annotationProcessor("androidx.room:room-compiler:$room_version")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
