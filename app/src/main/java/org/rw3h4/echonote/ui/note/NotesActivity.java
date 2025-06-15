@@ -178,10 +178,23 @@ public class NotesActivity extends AppCompatActivity {
 
     private void applyFilters() {
         String query = searchBar.getText() != null ? searchBar.getText().toString() : "";
+
         if (currentCategory.equals("All")) {
             noteViewModel.searchNotesByTitle(query).observe(this, this::updateNotesList);
         } else {
-            noteViewModel.searchNotesByCategory(currentCategory).observe(this, this::updateNotesList);
+            noteViewModel.searchNotesByCategory(currentCategory).observe(this,
+                    notes -> {
+                List<Note> filteredNotes = new ArrayList<>();
+                for (Note note : notes) {
+                    if (note.getCategory() != null &&
+                            note.getCategory().equalsIgnoreCase(currentCategory) &&
+                            note.getTitle().toLowerCase().contains(query.toLowerCase())) {
+                        filteredNotes.add(note);
+                    }
+                }
+
+                updateNotesList(filteredNotes);
+            });
         }
     }
 

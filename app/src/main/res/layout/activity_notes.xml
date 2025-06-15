@@ -142,7 +142,7 @@
         android:layout_height="0dp"
         android:clipToPadding="false"
         android:padding="16dp"
-        android:overScrollMode="never"
+        android:overScrollMode="ifContentScrolls"
         android:contentDescription="@string/notes_grid"
         app:spanCount="2"
         app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
