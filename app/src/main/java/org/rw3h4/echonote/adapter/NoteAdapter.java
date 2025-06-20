@@ -1,6 +1,8 @@
 package org.rw3h4.echonote.adapter;
 
 import android.net.Uri;
+import android.text.Html;
+import android.text.format.DateFormat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,6 +17,7 @@ import org.rw3h4.echonote.R;
 import org.rw3h4.echonote.data.local.model.Note;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.NoteViewHolder> {
@@ -57,16 +60,18 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.NoteViewHolder
     @Override
     public void onBindViewHolder(@NonNull NoteViewHolder holder, int position) {
         Note note = notes.get(position);
+
         holder.titleTextView.setText(note.getTitle());
         holder.categoryTextView.setText(note.getCategory());
-        holder.contentTextView.setText(note.getContent());
 
-        if (note.getImageUri() != null && !note.getImageUri().isEmpty()) {
-            holder.noteImageView.setVisibility(View.VISIBLE);
-            holder.noteImageView.setImageURI(Uri.parse(note.getImageUri()));
-        } else {
-            holder.noteImageView.setVisibility(View.GONE);
-        }
+        // Migrated from text based note content to Html for inline images and text formatting
+        holder.contentTextView.setText(Html.fromHtml(note.getContent(), Html.FROM_HTML_MODE_COMPACT));
+
+        long timeToUse = note.getLastEdited() > 0 ? note.getLastEdited() : note.getTimestamp();
+        String formattedTime = DateFormat.format("dd MMM yyyy, hh:mm a", new Date(timeToUse)).toString();
+        holder.timestampTextView.setText(formattedTime);
+
+        holder.pinIcon.setVisibility(note.isPinned() ? View.VISIBLE : View.GONE);
 
         holder.itemView.setOnClickListener(v -> listener.onNoteClick(note));
         holder.itemView.setOnLongClickListener(v -> {
@@ -80,15 +85,16 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.NoteViewHolder
         return notes.size();
     }
     static class NoteViewHolder extends RecyclerView.ViewHolder {
-        TextView titleTextView, contentTextView, categoryTextView;
-        ImageView noteImageView;
+        TextView titleTextView, contentTextView, categoryTextView, timestampTextView;
+        ImageView pinIcon;
 
         public NoteViewHolder(@NonNull View itemView) {
             super(itemView);
             titleTextView = itemView.findViewById(R.id.note_title);
             categoryTextView = itemView.findViewById(R.id.note_category);
             contentTextView = itemView.findViewById(R.id.note_content);
-            noteImageView = itemView.findViewById(R.id.note_image);
+            timestampTextView = itemView.findViewById(R.id.note_timestamp);
+            pinIcon = itemView.findViewById(R.id.pin_icon_imageview);
         }
 
     }

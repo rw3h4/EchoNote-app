@@ -179,23 +179,24 @@ public class NotesActivity extends AppCompatActivity {
     private void applyFilters() {
         String query = searchBar.getText() != null ? searchBar.getText().toString() : "";
 
-        if (currentCategory.equals("All")) {
-            noteViewModel.searchNotesByTitle(query).observe(this, this::updateNotesList);
-        } else {
-            noteViewModel.searchNotesByCategory(currentCategory).observe(this,
-                    notes -> {
-                List<Note> filteredNotes = new ArrayList<>();
-                for (Note note : notes) {
-                    if (note.getCategory() != null &&
-                            note.getCategory().equalsIgnoreCase(currentCategory) &&
-                            note.getTitle().toLowerCase().contains(query.toLowerCase())) {
-                        filteredNotes.add(note);
-                    }
-                }
+        noteViewModel.getAllNotes().observe(this, notes -> {
+            List<Note> filtered = new ArrayList<>();
 
-                updateNotesList(filteredNotes);
-            });
-        }
+            for (Note note : notes) {
+                boolean categoryMatch = currentCategory.equals("All") ||
+                        note.getCategory().equalsIgnoreCase(currentCategory);
+
+                boolean queryMatch = query.isEmpty() ||
+                        note.getTitle().toLowerCase().contains(query.toLowerCase()) ||
+                        note.getContent().toLowerCase().contains(query.toLowerCase());
+
+                if (categoryMatch && queryMatch) {
+                    filtered.add(note);
+                }
+            }
+
+            updateNotesList(filtered);
+        });
     }
 
     private void updateNotesList(List<Note> notes) {

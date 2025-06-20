@@ -29,12 +29,16 @@ public class NoteRepository {
         return allNotes;
     }
 
-    public LiveData<List<Note>> searchNotesByTitle(String title) {
-        return noteDao.searchNotesByTitle("%" + title + "%");
+    public LiveData<List<Note>> searchNotesByTitle(String query) {
+        return noteDao.searchNotes(query);
     }
 
     public LiveData<List<Note>> searchNotesByCategory(String category) {
-        return noteDao.searchNotesByCategory("%" + category + "%");
+        return noteDao.searchNotesByCategory(category);
+    }
+
+    public LiveData<List<Note>> getPinnedNotes() {
+        return noteDao.getPinnedNotes();
     }
 
     public void insert(Note note) {
@@ -47,5 +51,13 @@ public class NoteRepository {
 
     public void delete(Note note) {
         executorService.execute(() -> noteDao.deleteNote(note));
+    }
+
+    public void updatePinStatus(int noteId, boolean isPinned) {
+        executorService.execute(() -> noteDao.updatePinStatus(noteId, isPinned));
+    }
+
+    public void updateLastEdited(int noteId, long lastEdited) {
+        executorService.execute(() -> noteDao.updateLastEdited(noteId, lastEdited));
     }
 }

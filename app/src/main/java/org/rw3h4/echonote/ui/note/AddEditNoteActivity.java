@@ -2,7 +2,6 @@ package org.rw3h4.echonote.ui.note;
 
 import android.Manifest;
 import android.app.Activity;
-import android.content.ContentValues;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
@@ -88,7 +87,6 @@ public class AddEditNoteActivity extends AppCompatActivity {
         titleInput = findViewById(R.id.note_title_input);
         contentInput = findViewById(R.id.note_content_input);
         categoryInput = findViewById(R.id.note_category_input);
-        imagePreview = findViewById(R.id.note_imageView);
 
         ImageView galleryBtn = findViewById(R.id.add_attachment);
         ImageView cameraBtn = findViewById(R.id.add_take_photo);
@@ -129,11 +127,6 @@ public class AddEditNoteActivity extends AppCompatActivity {
         contentInput.setText(note.getContent());
         categoryInput.setText(note.getCategory());
 
-        if (note.getImageUri() != null) {
-            imageUri = Uri.parse(note.getImageUri());
-            imagePreview.setImageURI(imageUri);
-            imagePreview.setVisibility(View.VISIBLE);
-        }
     }
 
     private void saveNote() {
@@ -147,20 +140,22 @@ public class AddEditNoteActivity extends AppCompatActivity {
             return;
         }
 
+        if (imageUri != null) {
+            String imgTag = "<br><img src=\"" + imageUri.toString() + "\"/>br>";
+            content += imgTag;
+        }
+
+        long now = System.currentTimeMillis();
+
         if (existingNote != null) {
             existingNote.setTitle(title);
             existingNote.setContent(content);
             existingNote.setCategory(category);
-            existingNote.setImageUri(imageUri != null ? imageUri.toString() : null);
             noteViewModel.update(existingNote);
+            noteViewModel.updateLastEdited(existingNote.getId(), now);
             Toast.makeText(this, "Note updated", Toast.LENGTH_SHORT).show();
         } else {
-            Note newNote = new Note();
-            newNote.setTitle(title);
-            newNote.setContent(content);
-            newNote.setCategory(category);
-            newNote.setImageUri(imageUri != null ? imageUri.toString() : null);
-            newNote.setTimestamp(System.currentTimeMillis());
+            Note newNote = new Note(title, content, category, now, now, false);
             noteViewModel.insert(newNote);
             Toast.makeText(this, "Note added", Toast.LENGTH_SHORT).show();
         }

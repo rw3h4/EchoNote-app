@@ -39,12 +39,9 @@ public class NoteDiffCallback extends DiffUtil.Callback {
         return oldNote.getTitle().equals(newNote.getTitle()) &&
                 oldNote.getCategory().equals(newNote.getCategory()) &&
                 oldNote.getContent().equals(newNote.getContent())  &&
-                (
-                        (oldNote.getImageUri() == null && newNote.getImageUri() == null) ||
-                                (oldNote.getImageUri() != null &&
-                                        oldNote.getImageUri().equals(newNote.getImageUri())
-                                )
-                );
+                oldNote.getTimestamp() == newNote.getTimestamp() &&
+                oldNote.getLastEdited() == newNote.getLastEdited() &&
+                oldNote.isPinned() == newNote.isPinned();
 
     }
 }

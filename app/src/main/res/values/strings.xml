@@ -53,5 +53,7 @@
     <string name="note_title">Note Title</string>
     <string name="category">Category</string>
     <string name="note_content_preview">Note content preview goes here, showing up to 3 lines only for clean layout.</string>
+    <string name="timestamp">18 Jun 2025, 04:55 PM</string>
+    <string name="pinned_note_indicator">Pinned Note Indicator</string>
 
 </resources>

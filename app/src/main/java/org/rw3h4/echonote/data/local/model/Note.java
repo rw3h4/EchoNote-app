@@ -4,38 +4,69 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 import androidx.annotation.NonNull;
+import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
+
+import java.util.Objects;
 
 @Entity(tableName = "notes")
 public class Note implements Parcelable {
 
     @PrimaryKey(autoGenerate = true)
+    @ColumnInfo(name = "note_id")
     public int id;
 
     @NonNull
+    @ColumnInfo(name = "note_title")
     public String title;
 
+    /**
+     * Refactor: Consider the note's content as an HTML string.
+     * This adding features like text formatting and inline images
+     * using URI.
+     * This effectively makes the imageUri field redundant.
+     */
     @NonNull
+    @ColumnInfo(name = "note_content")
     public String content;
 
     @NonNull
+    @ColumnInfo(name = "note_category")
     public String category;
 
 
-    public String imageUri;
+    // public String imageUri;
 
+    @ColumnInfo(name = "note_timestamp")
     public long timestamp;
+
+    @ColumnInfo(name = "last_edited")
+    public long lastEdited;
+
+    @ColumnInfo(name = "is_pinned")
+    public boolean isPinned;
 
     public Note() {}
 
+    public Note(@NonNull String title, @NonNull String content, @NonNull String category,
+                long timestamp, long lastEdited, boolean isPinned) {
+        this.title = title;
+        this.content = content;
+        this.category = category;
+        this.timestamp = timestamp;
+        this.lastEdited = lastEdited;
+        this.isPinned = isPinned;
+    }
+
     protected Note(Parcel in) {
-        id = in.readInt();;
-        title = in.readString();
-        content = in.readString();
-        category = in.readString();
-        imageUri = in.readString();
+        id = in.readInt();
+        title = Objects.requireNonNull(in.readString());
+        content = Objects.requireNonNull(in.readString());
+        category = Objects.requireNonNull(in.readString());
         timestamp = in.readLong();
+        lastEdited = in.readLong();
+        isPinned = in.readByte() != 0;
     }
 
     public static final Creator<Note> CREATOR = new Creator<Note>() {
@@ -62,7 +93,8 @@ public class Note implements Parcelable {
         parcel.writeString(content);
         parcel.writeString(category);
         parcel.writeLong(timestamp);
-        parcel.writeString(imageUri);
+        parcel.writeLong(lastEdited);
+        parcel.writeByte((byte) (isPinned ? 1 : 0));
     }
 
     public int getId() {
@@ -84,13 +116,15 @@ public class Note implements Parcelable {
         return category;
     }
 
-    public String getImageUri() {
-        return imageUri;
-    }
-
     public long getTimestamp() {
         return timestamp;
     }
+
+    public long getLastEdited() { return lastEdited; }
+
+    public boolean isPinned() { return isPinned; }
+
+
 
     public void setId(int id) {
         this.id = id;
@@ -108,11 +142,15 @@ public class Note implements Parcelable {
         this.category = category;
     }
 
-    public void setImageUri(String imageUri) {
-        this.imageUri = imageUri;
-    }
-
     public void setTimestamp(long timestamp) {
         this.timestamp = timestamp;
+    }
+
+    public void setLastEdited(long lastEdited) {
+        this.lastEdited = lastEdited;
+    }
+
+    public void setPinned(boolean pinned) {
+        this.isPinned = pinned;
     }
 }
