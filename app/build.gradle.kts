@@ -49,6 +49,7 @@ android {
 dependencies {
 
     val room_version = "2.7.1"
+    val lifecycle_version = "2.9.1"
 
     implementation(libs.appcompat)
     implementation(libs.material)
@@ -73,6 +74,11 @@ dependencies {
     //Room Database
     implementation("androidx.room:room-runtime:$room_version")
     annotationProcessor("androidx.room:room-compiler:$room_version")
+
+    // Live Data
+    implementation("androidx.lifecycle:lifecycle-viewmodel:${lifecycle_version}")
+    implementation("androidx.lifecycle:lifecycle-livedata:${lifecycle_version}")
+    annotationProcessor("androidx.lifecycle:lifecycle-compiler:$lifecycle_version")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)

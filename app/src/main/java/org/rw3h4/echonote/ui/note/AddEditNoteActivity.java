@@ -15,23 +15,20 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.activity.EdgeToEdge;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.google.android.material.textfield.TextInputEditText;
 
 import org.rw3h4.echonote.R;
+import org.rw3h4.echonote.data.local.model.Category;
 import org.rw3h4.echonote.data.local.model.Note;
-import org.rw3h4.echonote.viewmodel.NoteViewModel;
+import org.rw3h4.echonote.viewmodel.AddEditNoteViewModel;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -50,14 +47,14 @@ public class AddEditNoteActivity extends AppCompatActivity {
     private ImageView imagePreview;
     private Uri imageUri = null;
     private Note existingNote;
-    private NoteViewModel noteViewModel;
+    private AddEditNoteViewModel addEditNoteViewModel;
 
     private final ActivityResultLauncher<Intent> galleryLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(), result -> {
                 if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
                     imageUri = result.getData().getData();
-                    imagePreview.setImageURI(imageUri);
-                    imagePreview.setVisibility(View.VISIBLE);
+                    // imagePreview.setImageURI(imageUri);
+                    // imagePreview.setVisibility(View.VISIBLE);
                 }
             }
     );
@@ -74,93 +71,105 @@ public class AddEditNoteActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
+        // EdgeToEdge.enable(this);
         setContentView(R.layout.activity_add_edit_note);
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
 
-        noteViewModel = new ViewModelProvider(this).get(NoteViewModel.class);
+        // Initialize the view model
+        addEditNoteViewModel = new ViewModelProvider(this).get(AddEditNoteViewModel.class);
 
+        initializeViews();
+        handleIntent();
+        observerViewModel();
+
+        findViewById(R.id.save_note_button).setOnClickListener(v -> saveNote());
+        findViewById(R.id.ic_add_edit_close).setOnClickListener(v -> finish());
+    }
+
+    private void initializeViews() {
         titleInput = findViewById(R.id.note_title_input);
         contentInput = findViewById(R.id.note_content_input);
         categoryInput = findViewById(R.id.note_category_input);
+    }
 
-        ImageView galleryBtn = findViewById(R.id.add_attachment);
-        ImageView cameraBtn = findViewById(R.id.add_take_photo);
-        ImageView saveBtn = findViewById(R.id.save_note_button);
+    /**
+     * Checks if we are editing an existing note and populates fields
+     */
+    private void handleIntent() {
         TextView heading = findViewById(R.id.add_note_textView);
-
-        setupCategorySuggestions();
-
-        if (getIntent() != null &&getIntent().hasExtra("note")) {
-            existingNote = getIntent().getParcelableExtra("note");
-            if (existingNote != null) {
-                heading.setText(R.string.edit_note);
-                populateNoteFields(existingNote);
-            } else {
-                Toast.makeText(this, "Failed to load note", Toast.LENGTH_SHORT).show();
-                finish();
-            }
+        if (getIntent().hasExtra("note_to_edit")) {
+            existingNote = getIntent().getParcelableExtra("note_to_edit");
+            heading.setText(R.string.edit_note);
         } else {
             heading.setText(R.string.add_note);
         }
-
-        galleryBtn.setOnClickListener(v -> openGallery());
-        cameraBtn.setOnClickListener(v -> openCamera());
-
-        saveBtn.setOnClickListener(v -> saveNote());
     }
 
-    private void setupCategorySuggestions() {
-        List<String> suggestions = getUserCustomCategories();
-        suggestions.remove("All");
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
-                android.R.layout.simple_dropdown_item_1line, suggestions);
+    /**
+     * Central place to observe all LiveData from our ViewModel
+     */
+    private void observerViewModel() {
+        addEditNoteViewModel.allCategories.observe(this, categories -> {
+            if (categories != null) {
+                setupCategorySuggestions(categories);
+
+                if (existingNote != null) {
+                    populateNoteFields(existingNote, categories);
+                }
+            }
+        });
+
+        // Observe the saveFinished signal. When true close the activity
+        addEditNoteViewModel.getSaveFinished().observe(this, isFinished -> {
+            if (isFinished != null && isFinished) {
+                Toast.makeText(this, "Note saved", Toast.LENGTH_SHORT).show();
+                finish();
+                addEditNoteViewModel.onSaveComplete();
+            }
+        });
+    }
+
+    private void setupCategorySuggestions(List<Category> categories) {
+        List<String> categoryNames = new ArrayList<>();
+        for (Category category : categories) {
+            // "None" is the default category as such should not be suggested
+            if (!category.getName().equalsIgnoreCase("None")) {
+                categoryNames.add(category.getName());
+            }
+        }
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, categoryNames);
         categoryInput.setAdapter(adapter);
     }
 
-    private void populateNoteFields(Note note) {
+    private void populateNoteFields(Note note, List<Category> categories) {
         titleInput.setText(note.getTitle());
         contentInput.setText(note.getContent());
-        categoryInput.setText(note.getCategory());
 
+        // Find the category name from it's ID
+        for (Category category : categories) {
+            if (category.getId() == note.getCategoryId()) {
+                categoryInput.setText(category.getName());
+                break;
+            }
+        }
     }
 
+    /**
+     * Gathers data from the UI and informs the ViewModel to save the note
+     */
     private void saveNote() {
         String title = Objects.requireNonNull(titleInput.getText()).toString().trim();
         String content = Objects.requireNonNull(contentInput.getText()).toString().trim();
-        String rawCategory = categoryInput.getText() != null ? categoryInput.getText().toString().trim() : "";
-        String category = rawCategory.isEmpty() ? "None" : rawCategory;
+        String categoryName = categoryInput.getText().toString().trim();
 
-        if (title.isEmpty() && content.isEmpty()) {
-            Toast.makeText(this, "Note is empty", Toast.LENGTH_SHORT).show();
+        if (title.isEmpty()) {
+            Toast.makeText(this, "Title cannot be empty", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        if (imageUri != null) {
-            String imgTag = "<br><img src=\"" + imageUri.toString() + "\"/>br>";
-            content += imgTag;
-        }
-
-        long now = System.currentTimeMillis();
-
-        if (existingNote != null) {
-            existingNote.setTitle(title);
-            existingNote.setContent(content);
-            existingNote.setCategory(category);
-            noteViewModel.update(existingNote);
-            noteViewModel.updateLastEdited(existingNote.getId(), now);
-            Toast.makeText(this, "Note updated", Toast.LENGTH_SHORT).show();
-        } else {
-            Note newNote = new Note(title, content, category, now, now, false);
-            noteViewModel.insert(newNote);
-            Toast.makeText(this, "Note added", Toast.LENGTH_SHORT).show();
-        }
-
-        finish();
+        // The ViewModel now handles the rest of the complex logic once we pass it
+        // the raw data from the UI
+        addEditNoteViewModel.saveNote(existingNote, title, content, categoryName);
     }
 
     private void openGallery() {
@@ -205,17 +214,4 @@ public class AddEditNoteActivity extends AppCompatActivity {
         }
     }
 
-    private List<String> getUserCustomCategories() {
-        List<String> customCategories = new ArrayList<>();
-        customCategories.add("All");
-        customCategories.add("Important");
-        customCategories.add("Bookmarked");
-        customCategories.add("Favorite");
-        customCategories.add("Work");
-        customCategories.add("Personal");
-        customCategories.add("Home");
-        customCategories.add("Project");
-
-        return customCategories;
-    }
 }

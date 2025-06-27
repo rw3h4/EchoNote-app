@@ -145,7 +145,7 @@
         android:overScrollMode="ifContentScrolls"
         android:contentDescription="@string/notes_grid"
         app:spanCount="2"
-        app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
+        app:layoutManager="androidx.recyclerview.widget.StaggeredGridLayoutManager"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/category_filter_textInputLayout"

@@ -6,20 +6,37 @@ import android.os.Parcelable;
 import androidx.annotation.NonNull;
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
+import androidx.room.ForeignKey;
+import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
 
 import java.util.Objects;
 
-@Entity(tableName = "notes")
+/**
+ * Represents a note in the application.
+ * Establish a relationship with the categories table.
+ * If a categgory is deleted, any note using it will have
+ * its category ID set to default value 1 (for the "None" category).
+ * All fields have been updated from public to private final for immutability
+ */
+@Entity(
+        tableName = "notes",
+        foreignKeys = @ForeignKey(
+                entity = Category.class,
+                parentColumns = "category_id",
+                childColumns = "note_category_id",
+                onDelete = ForeignKey.SET_DEFAULT
+        )
+)
 public class Note implements Parcelable {
 
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = "note_id")
-    public int id;
+    private final int id;
 
     @NonNull
     @ColumnInfo(name = "note_title")
-    public String title;
+    private final String title;
 
     /**
      * Refactor: Consider the note's content as an HTML string.
@@ -29,44 +46,81 @@ public class Note implements Parcelable {
      */
     @NonNull
     @ColumnInfo(name = "note_content")
-    public String content;
+    private final String content;
 
-    @NonNull
-    @ColumnInfo(name = "note_category")
-    public String category;
+    // The String field is replaced with an integer field to correspond to the
+    // Category table. Default value for "None" category set to 1 in the database
+    @ColumnInfo(name = "note_category_id", defaultValue = "1")
+    private final int categoryId;
 
 
-    // public String imageUri;
+    // public String imageUri; migrated to Html for better text formatting and inline images
 
     @ColumnInfo(name = "note_timestamp")
-    public long timestamp;
+    private final long timestamp;
 
     @ColumnInfo(name = "last_edited")
-    public long lastEdited;
+    private final long lastEdited;
 
     @ColumnInfo(name = "is_pinned")
-    public boolean isPinned;
+    private final boolean isPinned;
 
-    public Note() {}
-
-    public Note(@NonNull String title, @NonNull String content, @NonNull String category,
-                long timestamp, long lastEdited, boolean isPinned) {
+    // Primary Room constructor
+    public Note(int id, @NonNull String title, @NonNull String content, int categoryId,
+                long timestamp, long lastEdited, boolean isPinned
+    ) {
+        this.id = id;
         this.title = title;
         this.content = content;
-        this.category = category;
+        this.categoryId = categoryId;
         this.timestamp = timestamp;
         this.lastEdited = lastEdited;
         this.isPinned = isPinned;
+    }
+
+    /**
+     * Convenience contructor for creating new Note before
+     * insertion into the database
+     * id set to 0, Room will autogenerate
+     * isPinned set to false, new Notes are not pinned by default
+     * timestamp set to current time which is system time
+     */
+    @Ignore
+    public Note(@NonNull String title, @NonNull String content, int categoryId) {
+        this.id = 0;
+        this.title = title;
+        this.content = content;
+        this.categoryId = categoryId;
+        long currentTime = System.currentTimeMillis();
+        this.timestamp = currentTime;
+        this.lastEdited = currentTime;
+        this.isPinned = false;
     }
 
     protected Note(Parcel in) {
         id = in.readInt();
         title = Objects.requireNonNull(in.readString());
         content = Objects.requireNonNull(in.readString());
-        category = Objects.requireNonNull(in.readString());
+        categoryId = in.readInt();
         timestamp = in.readLong();
         lastEdited = in.readLong();
         isPinned = in.readByte() != 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeInt(id);
+        dest.writeString(title);
+        dest.writeString(content);
+        dest.writeInt(categoryId);
+        dest.writeLong(timestamp);
+        dest.writeLong(lastEdited);
+        dest.writeByte((byte) (isPinned ? 1 : 0));
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
     }
 
     public static final Creator<Note> CREATOR = new Creator<Note>() {
@@ -81,76 +135,50 @@ public class Note implements Parcelable {
         }
     };
 
-    @Override
-    public int describeContents() {
-        return 0;
-    }
 
-    @Override
-    public void writeToParcel(Parcel parcel, int i) {
-        parcel.writeInt(id);
-        parcel.writeString(title);
-        parcel.writeString(content);
-        parcel.writeString(category);
-        parcel.writeLong(timestamp);
-        parcel.writeLong(lastEdited);
-        parcel.writeByte((byte) (isPinned ? 1 : 0));
-    }
-
-    public int getId() {
-        return id;
-    }
+    public int getId() { return id; }
 
     @NonNull
-    public String getTitle() {
-        return title;
-    }
+    public String getTitle() { return title; }
 
     @NonNull
-    public String getContent() {
-        return content;
-    }
+    public String getContent() { return content; }
 
-    @NonNull
-    public String getCategory() {
-        return category;
-    }
+    public int getCategoryId() { return categoryId; }
 
-    public long getTimestamp() {
-        return timestamp;
-    }
+    public long getTimestamp() { return timestamp; }
 
     public long getLastEdited() { return lastEdited; }
 
     public boolean isPinned() { return isPinned; }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Note note = (Note) o;
 
-
-    public void setId(int id) {
-        this.id = id;
+        // Here I consider two notes equal if they have the same ID
+        // and content for the DiffUtil purposes
+        return id == note.id &&
+                timestamp == note.timestamp &&
+                lastEdited == note.lastEdited &&
+                isPinned == note.isPinned &&
+                title.equals(note.title) &&
+                content.equals(note.content) &&
+                categoryId == note.categoryId;
     }
 
-    public void setTitle(@NonNull String title) {
-        this.title = title;
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, title, content, categoryId, timestamp, lastEdited, isPinned);
     }
 
-    public void setContent(@NonNull String content) {
-        this.content = content;
+    @NonNull
+    @Override
+    public String toString() {
+        return "Note{" + "id=" + id + ", title='" + title + '\'' + ", categoryId="
+                + categoryId + ", isPinned=" + isPinned + '}';
     }
 
-    public void setCategory(@NonNull String category) {
-        this.category = category;
-    }
-
-    public void setTimestamp(long timestamp) {
-        this.timestamp = timestamp;
-    }
-
-    public void setLastEdited(long lastEdited) {
-        this.lastEdited = lastEdited;
-    }
-
-    public void setPinned(boolean pinned) {
-        this.isPinned = pinned;
-    }
 }

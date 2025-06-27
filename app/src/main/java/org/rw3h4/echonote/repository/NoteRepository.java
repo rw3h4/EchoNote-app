@@ -6,6 +6,7 @@ import androidx.lifecycle.LiveData;
 
 import org.rw3h4.echonote.data.local.NoteDao;
 import org.rw3h4.echonote.data.local.NoteDatabase;
+import org.rw3h4.echonote.data.local.model.Category;
 import org.rw3h4.echonote.data.local.model.Note;
 
 import java.util.List;
@@ -15,49 +16,74 @@ import java.util.concurrent.Executors;
 public class NoteRepository {
 
     private final NoteDao noteDao;
+    private final ExecutorService databaseWriteExecutor;
+
     private final LiveData<List<Note>> allNotes;
-    private final ExecutorService executorService;
+    private final LiveData<List<Category>> allCategories;
 
     public NoteRepository(Application application) {
-        NoteDatabase db = NoteDatabase.getInstance(application);
+        NoteDatabase db = NoteDatabase.getDatabase(application);
         noteDao = db.noteDao();
+        databaseWriteExecutor = NoteDatabase.databaseWriteExecutor;
         allNotes = noteDao.getAllNotes();
-        executorService = Executors.newSingleThreadExecutor();
+        allCategories = noteDao.getAllCategories();
     }
 
     public LiveData<List<Note>> getAllNotes() {
         return allNotes;
     }
 
-    public LiveData<List<Note>> searchNotesByTitle(String query) {
+    public LiveData<List<Note>> searchNotes(String query) {
         return noteDao.searchNotes(query);
     }
 
-    public LiveData<List<Note>> searchNotesByCategory(String category) {
-        return noteDao.searchNotesByCategory(category);
+    public LiveData<List<Note>> getNotesByCategoryId(int categoryId) {
+        return noteDao.getNotesByCategoryId(categoryId);
     }
 
     public LiveData<List<Note>> getPinnedNotes() {
         return noteDao.getPinnedNotes();
     }
 
-    public void insert(Note note) {
-        executorService.execute(() -> noteDao.insertNote(note));
+    public LiveData<List<Category>> getAllCategories() {
+        return allCategories;
     }
 
-    public void update(Note note) {
-        executorService.execute(() -> noteDao.updateNote(note));
+    public void saveNoteWithCategory(final Note noteToSave, final String categoryName) {
+        databaseWriteExecutor.execute(() -> {
+            Category category = noteDao.findCategoryByName(categoryName);
+            int categoryId;
+
+            if (category == null) {
+                categoryId = (int) noteDao.insertCategory(new Category(categoryName));
+            } else {
+                categoryId = category.getId();
+            }
+
+            Note finalNote = new Note(
+                    noteToSave.getId(),
+                    noteToSave.getTitle(),
+                    noteToSave.getContent(),
+                    categoryId,
+                    System.currentTimeMillis(),
+                    System.currentTimeMillis(),
+                    noteToSave.isPinned()
+            );
+
+            noteDao.insertNote(finalNote);
+        });
     }
 
     public void delete(Note note) {
-        executorService.execute(() -> noteDao.deleteNote(note));
+        databaseWriteExecutor.execute(() -> noteDao.deleteNote(note));
     }
 
     public void updatePinStatus(int noteId, boolean isPinned) {
-        executorService.execute(() -> noteDao.updatePinStatus(noteId, isPinned));
+        databaseWriteExecutor.execute(() -> noteDao.updatePinStatus(noteId, isPinned));
     }
 
+    // Might no longer be needed, saveNoteWithCategory() is used instead.
     public void updateLastEdited(int noteId, long lastEdited) {
-        executorService.execute(() -> noteDao.updateLastEdited(noteId, lastEdited));
+        databaseWriteExecutor.execute(() -> noteDao.updateLastEdited(noteId, lastEdited));
     }
 }

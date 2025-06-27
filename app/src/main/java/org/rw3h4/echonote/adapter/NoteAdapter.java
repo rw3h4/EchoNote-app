@@ -1,6 +1,5 @@
 package org.rw3h4.echonote.adapter;
 
-import android.net.Uri;
 import android.text.Html;
 import android.text.format.DateFormat;
 import android.view.LayoutInflater;
@@ -11,18 +10,18 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.DiffUtil;
+import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 
 import org.rw3h4.echonote.R;
 import org.rw3h4.echonote.data.local.model.Note;
+import org.rw3h4.echonote.data.local.model.NoteWithCategory;
 
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
-public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.NoteViewHolder> {
+// Moved to ListAdapter (from RecyclerView.Adapter) to simplify code when using DiffUtil
+public class NoteAdapter extends ListAdapter<NoteWithCategory, NoteAdapter.NoteViewHolder> {
 
-    private final List<Note> notes = new ArrayList<>();
     private final OnNoteClickListener listener;
 
     public interface OnNoteClickListener {
@@ -31,21 +30,23 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.NoteViewHolder
     }
 
     public NoteAdapter(OnNoteClickListener listener) {
+        super(DIFF_CALLBACK);
         this.listener = listener;
     }
 
-    public void setNotes(List<Note> newNotes) {
-        DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(
-                new NoteDiffCallback(this.notes, newNotes)
-        );
-        notes.clear();
-        notes.addAll(newNotes);
-        diffResult.dispatchUpdatesTo(this);
-    }
+    //Changed the DiffUtil Callback to a static final field
+    private static final DiffUtil.ItemCallback<NoteWithCategory> DIFF_CALLBACK = new DiffUtil.ItemCallback<NoteWithCategory>() {
+        @Override
+        public boolean areItemsTheSame(@NonNull NoteWithCategory oldItem, @NonNull NoteWithCategory newItem) {
+            return oldItem.getNote().getId() == newItem.getNote().getId();
+        }
 
-    public Note getNoteAt(int position) {
-        return notes.get(position);
-    }
+        @Override
+        public boolean areContentsTheSame(@NonNull NoteWithCategory oldItem, @NonNull NoteWithCategory newItem) {
+            return oldItem.getNote().equals(newItem.getNote()) &&
+                    oldItem.getCategoryName().equals(newItem.getCategoryName());
+        }
+    };
 
     @NonNull
     @Override
@@ -59,10 +60,11 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.NoteViewHolder
 
     @Override
     public void onBindViewHolder(@NonNull NoteViewHolder holder, int position) {
-        Note note = notes.get(position);
+        NoteWithCategory currentItem = getItem(position);
+        Note note = currentItem.getNote();
 
         holder.titleTextView.setText(note.getTitle());
-        holder.categoryTextView.setText(note.getCategory());
+        holder.categoryTextView.setText(currentItem.getCategoryName());
 
         // Migrated from text based note content to Html for inline images and text formatting
         holder.contentTextView.setText(Html.fromHtml(note.getContent(), Html.FROM_HTML_MODE_COMPACT));
@@ -80,10 +82,6 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.NoteViewHolder
         });
     }
 
-    @Override
-    public int getItemCount() {
-        return notes.size();
-    }
     static class NoteViewHolder extends RecyclerView.ViewHolder {
         TextView titleTextView, contentTextView, categoryTextView, timestampTextView;
         ImageView pinIcon;
