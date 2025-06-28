@@ -2,6 +2,7 @@ package org.rw3h4.echonote.adapter;
 
 import android.text.Html;
 import android.text.format.DateFormat;
+import android.text.method.LinkMovementMethod;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,6 +17,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import org.rw3h4.echonote.R;
 import org.rw3h4.echonote.data.local.model.Note;
 import org.rw3h4.echonote.data.local.model.NoteWithCategory;
+import org.rw3h4.echonote.util.note.GlideImageGetter;
 
 import java.util.Date;
 
@@ -66,8 +68,14 @@ public class NoteAdapter extends ListAdapter<NoteWithCategory, NoteAdapter.NoteV
         holder.titleTextView.setText(note.getTitle());
         holder.categoryTextView.setText(currentItem.getCategoryName());
 
-        // Migrated from text based note content to Html for inline images and text formatting
-        holder.contentTextView.setText(Html.fromHtml(note.getContent(), Html.FROM_HTML_MODE_COMPACT));
+        //holder.contentTextView.setText(Html.fromHtml(note.getContent(), Html.FROM_HTML_MODE_COMPACT));
+
+        // Use GlideImageGetter to process the Htmml
+        GlideImageGetter imageGetter = new GlideImageGetter(holder.itemView.getContext(), holder.contentTextView);
+        CharSequence spannedText = Html.fromHtml(note.getContent(), Html.FROM_HTML_MODE_COMPACT, imageGetter, null);
+
+        holder.contentTextView.setText(spannedText);
+        holder.contentTextView.setMovementMethod(LinkMovementMethod.getInstance());
 
         long timeToUse = note.getLastEdited() > 0 ? note.getLastEdited() : note.getTimestamp();
         String formattedTime = DateFormat.format("dd MMM yyyy, hh:mm a", new Date(timeToUse)).toString();

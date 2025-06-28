@@ -8,6 +8,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.text.Html;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
@@ -52,9 +53,14 @@ public class AddEditNoteActivity extends AppCompatActivity {
     private final ActivityResultLauncher<Intent> galleryLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(), result -> {
                 if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
-                    imageUri = result.getData().getData();
-                    // imagePreview.setImageURI(imageUri);
-                    // imagePreview.setVisibility(View.VISIBLE);
+                    Uri selectedImageUri = result.getData().getData();
+                    if (selectedImageUri !=  null) {
+                        // Take persistent permission to access this Uri
+                        final int takeFlags = Intent.FLAG_GRANT_READ_URI_PERMISSION;
+
+                        // Insert the image into the EditText
+                        insertImageIntoContent(selectedImageUri);
+                    }
                 }
             }
     );
@@ -152,6 +158,18 @@ public class AddEditNoteActivity extends AppCompatActivity {
                 break;
             }
         }
+    }
+
+    private void insertImageIntoContent(Uri imageUri) {
+        String uriString = imageUri.toString();
+
+        String imgTag = "<img src='" + uriString + "' style='width:95%;'/><br>";
+
+        int start = Math.max(contentInput.getSelectionStart(), 0);
+        int end =  Math.max(contentInput.getSelectionEnd(), 0);
+
+        Objects.requireNonNull(contentInput.getText()).replace(Math.min(start, end), Math.max(start, end),
+                Html.fromHtml(imgTag, Html.FROM_HTML_MODE_COMPACT), 0, 0);
     }
 
     /**

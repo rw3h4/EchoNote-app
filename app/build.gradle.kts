@@ -80,6 +80,10 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-livedata:${lifecycle_version}")
     annotationProcessor("androidx.lifecycle:lifecycle-compiler:$lifecycle_version")
 
+    // Glide
+    implementation("com.github.bumptech.glide:glide:4.16.0")
+    annotationProcessor("com.github.bumptech.glide:compiler:4.16.0")
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
