@@ -94,7 +94,7 @@ public class AddEditNoteActivity extends AppCompatActivity {
     private void initializeViews() {
         titleInput = findViewById(R.id.note_title_input);
         contentInput = findViewById(R.id.note_content_input);
-        categoryInput = findViewById(R.id.note_category_input);
+        categoryInput = findViewById(R.id.voice_note_category_input);
     }
 
     /**

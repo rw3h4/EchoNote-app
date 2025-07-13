@@ -4,6 +4,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.ForeignKey;
@@ -30,6 +31,9 @@ import java.util.Objects;
 )
 public class Note implements Parcelable {
 
+    public static final String NOTE_TYPE_TEXT = "TEXT";
+    public static final String NOTE_TYPE_VOICE = "VOICE";
+
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = "note_id")
     private final int id;
@@ -44,7 +48,7 @@ public class Note implements Parcelable {
      * using URI.
      * This effectively makes the imageUri field redundant.
      */
-    @NonNull
+    @Nullable
     @ColumnInfo(name = "note_content")
     private final String content;
 
@@ -65,9 +69,22 @@ public class Note implements Parcelable {
     @ColumnInfo(name = "is_pinned")
     private final boolean isPinned;
 
+    @NonNull
+    @ColumnInfo(name = "note_type", defaultValue = NOTE_TYPE_TEXT)
+    private final String noteType;
+
+    @Nullable
+    @ColumnInfo(name = "file_path")
+    private final String filePath;
+
+    @Nullable
+    @ColumnInfo(name = "duration")
+    private final long duration; // in milliseconds
+
     // Primary Room constructor
     public Note(int id, @NonNull String title, @NonNull String content, int categoryId,
-                long timestamp, long lastEdited, boolean isPinned
+                long timestamp, long lastEdited, boolean isPinned, @NonNull String noteType,
+                @Nullable String filePath, long duration
     ) {
         this.id = id;
         this.title = title;
@@ -76,15 +93,12 @@ public class Note implements Parcelable {
         this.timestamp = timestamp;
         this.lastEdited = lastEdited;
         this.isPinned = isPinned;
+        this.noteType  = noteType;
+        this.filePath = filePath;
+        this.duration = duration;
     }
 
-    /**
-     * Convenience contructor for creating new Note before
-     * insertion into the database
-     * id set to 0, Room will autogenerate
-     * isPinned set to false, new Notes are not pinned by default
-     * timestamp set to current time which is system time
-     */
+    // Convenience contructor for creating new TEXT Note
     @Ignore
     public Note(@NonNull String title, @NonNull String content, int categoryId) {
         this.id = 0;
@@ -95,6 +109,25 @@ public class Note implements Parcelable {
         this.timestamp = currentTime;
         this.lastEdited = currentTime;
         this.isPinned = false;
+        this.noteType = NOTE_TYPE_TEXT;
+        this.filePath = null;
+        this.duration = 0;
+    }
+
+    // Convenience constructor for creating a new VOICE Note
+    @Ignore
+    public Note(@NonNull String title, int categoryId, @NonNull String filePath, long duration) {
+        this.id = 0;
+        this.title = title;
+        this.categoryId = categoryId;
+        this.filePath = filePath;
+        this.duration = duration;
+        long currentTime = System.currentTimeMillis();
+        this.timestamp = currentTime;
+        this.lastEdited = currentTime;
+        this.isPinned = false;
+        this.noteType = NOTE_TYPE_VOICE;
+        this.content = null;
     }
 
     protected Note(Parcel in) {
@@ -105,6 +138,9 @@ public class Note implements Parcelable {
         timestamp = in.readLong();
         lastEdited = in.readLong();
         isPinned = in.readByte() != 0;
+        noteType = Objects.requireNonNull(in.readString());
+        filePath = in.readString();
+        duration = in.readLong();
     }
 
     @Override
@@ -116,6 +152,9 @@ public class Note implements Parcelable {
         dest.writeLong(timestamp);
         dest.writeLong(lastEdited);
         dest.writeByte((byte) (isPinned ? 1 : 0));
+        dest.writeString(noteType);
+        dest.writeString(filePath);
+        dest.writeLong(duration);
     }
 
     @Override
@@ -141,7 +180,7 @@ public class Note implements Parcelable {
     @NonNull
     public String getTitle() { return title; }
 
-    @NonNull
+    @Nullable
     public String getContent() { return content; }
 
     public int getCategoryId() { return categoryId; }
@@ -152,6 +191,14 @@ public class Note implements Parcelable {
 
     public boolean isPinned() { return isPinned; }
 
+    @NonNull
+    public String getNoteType() { return noteType; }
+
+    @Nullable
+    public String getFilePath() { return filePath; }
+
+    public long getDuration() { return duration; }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -161,17 +208,23 @@ public class Note implements Parcelable {
         // Here I consider two notes equal if they have the same ID
         // and content for the DiffUtil purposes
         return id == note.id &&
+                categoryId == note.categoryId &&
                 timestamp == note.timestamp &&
                 lastEdited == note.lastEdited &&
                 isPinned == note.isPinned &&
+                duration == note.duration &&
                 title.equals(note.title) &&
-                content.equals(note.content) &&
-                categoryId == note.categoryId;
+                Objects.equals(content, note.content) &&
+                noteType.equals(note.noteType) &&
+                Objects.equals(filePath, note.filePath);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, title, content, categoryId, timestamp, lastEdited, isPinned);
+        return Objects.hash(
+                id, title, content, categoryId, timestamp, lastEdited, isPinned,
+                noteType, filePath, duration
+        );
     }
 
     @NonNull

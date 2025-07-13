@@ -11,7 +11,6 @@ import org.rw3h4.echonote.data.local.model.Note;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class NoteRepository {
 
@@ -65,9 +64,12 @@ public class NoteRepository {
                     noteToSave.getTitle(),
                     noteToSave.getContent(),
                     categoryId,
+                    noteToSave.getTimestamp(),
                     System.currentTimeMillis(),
-                    System.currentTimeMillis(),
-                    noteToSave.isPinned()
+                    noteToSave.isPinned(),
+                    noteToSave.getNoteType(),
+                    noteToSave.getFilePath(),
+                    noteToSave.getDuration()
             );
 
             noteDao.insertNote(finalNote);

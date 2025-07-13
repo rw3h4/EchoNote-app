@@ -6,6 +6,7 @@ import android.text.method.LinkMovementMethod;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -20,15 +21,20 @@ import org.rw3h4.echonote.data.local.model.NoteWithCategory;
 import org.rw3h4.echonote.util.note.GlideImageGetter;
 
 import java.util.Date;
+import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
 // Moved to ListAdapter (from RecyclerView.Adapter) to simplify code when using DiffUtil
-public class NoteAdapter extends ListAdapter<NoteWithCategory, NoteAdapter.NoteViewHolder> {
+public class NoteAdapter extends ListAdapter<NoteWithCategory, RecyclerView.ViewHolder> {
 
+    private static final int VIEW_TYPE_TEXT = 1;
+    private static final int VIEW_TYPE_VOICE = 2;
     private final OnNoteClickListener listener;
 
     public interface OnNoteClickListener {
         void onNoteClick(Note note);
         void onNoteLongClick(Note note);
+        void onPlayVoiceNoteClick(Note note, ImageButton playButton);
     }
 
     public NoteAdapter(OnNoteClickListener listener) {
@@ -50,58 +56,111 @@ public class NoteAdapter extends ListAdapter<NoteWithCategory, NoteAdapter.NoteV
         }
     };
 
+    @Override
+    public int getItemViewType(int position) {
+        Note note = getItem(position).getNote();
+        if (Note.NOTE_TYPE_VOICE.equals(note.getNoteType())) {
+            return VIEW_TYPE_VOICE;
+        } else {
+            return VIEW_TYPE_TEXT;
+        }
+    }
+
     @NonNull
     @Override
-    public NoteViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View itemView = LayoutInflater.from(parent.getContext()).inflate(
-                R.layout.note_item, parent, false
-        );
-
-        return new NoteViewHolder(itemView);
+    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        LayoutInflater inflater = LayoutInflater.from(parent.getContext());
+        if (viewType == VIEW_TYPE_VOICE) {
+            View view = inflater.inflate(R.layout.note_item_voice, parent, false);
+            return new VoiceNoteViewHolder(view);
+        } else {
+            View view = inflater.inflate(R.layout.note_item_text, parent, false);
+            return new TextNoteViewHolder(view);
+        }
     }
 
     @Override
-    public void onBindViewHolder(@NonNull NoteViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         NoteWithCategory currentItem = getItem(position);
-        Note note = currentItem.getNote();
-
-        holder.titleTextView.setText(note.getTitle());
-        holder.categoryTextView.setText(currentItem.getCategoryName());
-
-        //holder.contentTextView.setText(Html.fromHtml(note.getContent(), Html.FROM_HTML_MODE_COMPACT));
-
-        // Use GlideImageGetter to process the Htmml
-        GlideImageGetter imageGetter = new GlideImageGetter(holder.itemView.getContext(), holder.contentTextView);
-        CharSequence spannedText = Html.fromHtml(note.getContent(), Html.FROM_HTML_MODE_COMPACT, imageGetter, null);
-
-        holder.contentTextView.setText(spannedText);
-        holder.contentTextView.setMovementMethod(LinkMovementMethod.getInstance());
-
-        long timeToUse = note.getLastEdited() > 0 ? note.getLastEdited() : note.getTimestamp();
-        String formattedTime = DateFormat.format("dd MMM yyyy, hh:mm a", new Date(timeToUse)).toString();
-        holder.timestampTextView.setText(formattedTime);
-
-        holder.pinIcon.setVisibility(note.isPinned() ? View.VISIBLE : View.GONE);
-
-        holder.itemView.setOnClickListener(v -> listener.onNoteClick(note));
-        holder.itemView.setOnLongClickListener(v -> {
-            listener.onNoteLongClick(note);
-            return true;
-        });
+        if (getItemViewType(position) == VIEW_TYPE_VOICE) {
+            ((VoiceNoteViewHolder) holder).bind(currentItem, listener);
+        } else {
+            ((TextNoteViewHolder) holder).bind(currentItem, listener);
+        }
     }
 
-    static class NoteViewHolder extends RecyclerView.ViewHolder {
+    private String formatDuration(long millis) {
+        return String.format(Locale.ROOT, "%01d:%02d",
+                TimeUnit.MILLISECONDS.toMinutes(millis),
+                TimeUnit.MILLISECONDS.toSeconds(millis) -
+                        TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millis))
+        );
+    }
+
+    class TextNoteViewHolder extends RecyclerView.ViewHolder {
         TextView titleTextView, contentTextView, categoryTextView, timestampTextView;
         ImageView pinIcon;
 
-        public NoteViewHolder(@NonNull View itemView) {
+        TextNoteViewHolder(@NonNull View itemView) {
             super(itemView);
-            titleTextView = itemView.findViewById(R.id.note_title);
+            titleTextView =  itemView.findViewById(R.id.note_title);
             categoryTextView = itemView.findViewById(R.id.note_category);
             contentTextView = itemView.findViewById(R.id.note_content);
             timestampTextView = itemView.findViewById(R.id.note_timestamp);
             pinIcon = itemView.findViewById(R.id.pin_icon_imageview);
         }
 
+        void bind(final NoteWithCategory item, final OnNoteClickListener listener) {
+            Note note = item.getNote();
+            titleTextView.setText(note.getTitle());
+            categoryTextView.setText(item.getCategoryName());
+            pinIcon.setVisibility(note.isPinned() ? View.VISIBLE : View.GONE);
+
+            GlideImageGetter imageGetter = new GlideImageGetter(itemView.getContext(), contentTextView);
+            CharSequence spannedText = Html.fromHtml(note.getContent(), Html.FROM_HTML_MODE_COMPACT, imageGetter, null);
+            contentTextView.setText(spannedText);
+            contentTextView.setMovementMethod(LinkMovementMethod.getInstance());
+
+            long timeToUse = note.getLastEdited() > 0 ? note.getLastEdited() : note.getTimestamp();
+            String formattedTime = DateFormat.format("dd MMMM, hh:mm a", new Date(timeToUse)).toString();
+            timestampTextView.setText(formattedTime);
+
+            itemView.setOnClickListener(v -> listener.onNoteClick(note));
+            itemView.setOnLongClickListener(v -> {
+                listener.onNoteClick(note);
+                return true;
+            });
+        }
+    }
+
+    class VoiceNoteViewHolder extends RecyclerView.ViewHolder {
+        TextView titleTextView, categoryTextView, durationTextView;
+        ImageView pinIcon;
+        ImageButton playPauseButton;
+
+        VoiceNoteViewHolder(@NonNull View itemView) {
+            super(itemView);
+            titleTextView =  itemView.findViewById(R.id.note_title);
+            categoryTextView = itemView.findViewById(R.id.note_category);
+            durationTextView = itemView.findViewById(R.id.text_voice_duration);
+            pinIcon = itemView.findViewById(R.id.pin_icon_imageview);
+            playPauseButton = itemView.findViewById(R.id.button_play_pause);
+        }
+
+        void bind(final NoteWithCategory  item, final OnNoteClickListener  listener) {
+            Note note = item.getNote();
+            titleTextView.setText(note.getTitle());
+            categoryTextView.setText(item.getCategoryName());
+            pinIcon.setVisibility(note.isPinned() ? View.VISIBLE : View.GONE);
+            durationTextView.setText(formatDuration(note.getDuration()));
+
+            itemView.setOnClickListener(v -> listener.onNoteClick(note));
+            itemView.setOnLongClickListener(v -> {
+                listener.onNoteLongClick(note);
+                return true;
+            });
+
+            playPauseButton.setOnClickListener(v -> listener.onPlayVoiceNoteClick(note, playPauseButton));
+        }
     }
 }

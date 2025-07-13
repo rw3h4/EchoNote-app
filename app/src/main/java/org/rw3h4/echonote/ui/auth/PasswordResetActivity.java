@@ -2,7 +2,6 @@ package org.rw3h4.echonote.ui.auth;
 
 import android.os.Bundle;
 import android.view.View;
-import android.view.ViewTreeObserver;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -10,12 +9,13 @@ import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
 
 import org.rw3h4.echonote.R;
-import org.rw3h4.echonote.ui.base.BaseActivity;
+import org.rw3h4.echonote.ui.auth.base.BaseActivity;
+
+import java.util.Objects;
 
 public class PasswordResetActivity extends BaseActivity {
 
     private FirebaseAuth mAuth;
-    boolean isReady = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -24,21 +24,11 @@ public class PasswordResetActivity extends BaseActivity {
 
         mAuth =  FirebaseAuth.getInstance();
 
-        setupSharedElementTransition(R.id.ic_logo_image);
         View mainContent = findViewById(android.R.id.content);
+
+        setupSplashScreen(mainContent);
         setupWindowInsets(mainContent);
-
-        mainContent.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
-            @Override
-            public boolean onPreDraw() {
-                if (!isReady) {
-                    return false;
-                }
-
-                mainContent.getViewTreeObserver().removeOnPreDrawListener(this);
-                return true;
-            }
-        });
+        setupSharedElementTransition(R.id.ic_logo_image);
 
         ImageView closeButton = findViewById(R.id.ic_reset_close);
         closeButton.setOnClickListener(v -> supportFinishAfterTransition());
@@ -47,14 +37,15 @@ public class PasswordResetActivity extends BaseActivity {
 
         findViewById(R.id.reset_pass_login_textView).setOnClickListener(v -> finish());
 
-        isReady = true;
+        isContentReady = true;
 
     }
 
     private void startPasswordReset() {
         TextInputEditText emailInput = findViewById(R.id.reset_email_textInput);
 
-        if(emailInput != null && emailInput.getText() != null) {
+        if(emailInput != null && emailInput.getText() != null &&
+                emailInput.getText().toString().trim().isEmpty()) {
             String email =  emailInput.getText().toString().trim();
             mAuth.sendPasswordResetEmail(email).addOnCompleteListener(
                     task -> {
@@ -62,7 +53,8 @@ public class PasswordResetActivity extends BaseActivity {
                             Toast.makeText(this, "Password Reset Email Sent!",
                                     Toast.LENGTH_SHORT).show();
                         } else {
-                            Toast.makeText(this, "Error: " + task.getException().getMessage(),
+                            Toast.makeText(this, "Error: " +
+                                            Objects.requireNonNull(task.getException()).getMessage(),
                                     Toast.LENGTH_SHORT).show();
                         }
                     }

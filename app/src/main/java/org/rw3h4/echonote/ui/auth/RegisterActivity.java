@@ -2,22 +2,23 @@ package org.rw3h4.echonote.ui.auth;
 
 import android.os.Bundle;
 import android.view.View;
-import android.view.ViewTreeObserver;
 import android.widget.ImageView;
 
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 import org.rw3h4.echonote.R;
-import org.rw3h4.echonote.ui.base.BaseActivity;
+import org.rw3h4.echonote.ui.auth.base.BaseActivity;
 import org.rw3h4.echonote.util.auth.AuthUtils;
 import org.rw3h4.echonote.util.auth.GoogleSignInHelper;
+
+import java.util.Objects;
 
 public class RegisterActivity extends BaseActivity {
 
     private FirebaseAuth mAuth;
     private GoogleSignInHelper googleSignInHelper;
-    boolean isReady = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,21 +28,20 @@ public class RegisterActivity extends BaseActivity {
         mAuth = FirebaseAuth.getInstance();
         googleSignInHelper = new GoogleSignInHelper(this);
 
-        setupSharedElementTransition(R.id.ic_logo_image);
+        // Resolved issue of orphaned accounts for anonymous users
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser != null && currentUser.isAnonymous()) {
+            AuthUtils.showToast(this, "Please use the login options to link your guest account");
+            finish();
+            return;
+        }
+
         View mainContent = findViewById(android.R.id.content);
+
+        setupSplashScreen(mainContent);
         setupWindowInsets(mainContent);
+        setupSharedElementTransition(R.id.ic_logo_image);
 
-        mainContent.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
-            @Override
-            public boolean onPreDraw() {
-                if (!isReady) {
-                    return false;
-                }
-
-                mainContent.getViewTreeObserver().removeOnPreDrawListener(this);
-                return true;
-            }
-        });
 
         ImageView closeButton = findViewById(R.id.ic_register_close);
         closeButton.setOnClickListener(v -> supportFinishAfterTransition());
@@ -54,7 +54,7 @@ public class RegisterActivity extends BaseActivity {
                 v -> startEmailPasswordRegister()
         );
 
-        isReady = true;
+        isContentReady = true;
 
     }
 
@@ -82,10 +82,10 @@ public class RegisterActivity extends BaseActivity {
                 emailInput != null &&
                 passwordInput != null &&
                 confirmPasswordInput != null &&
-                !AuthUtils.isEmpty(nameInput.getText().toString().trim()) &&
-                !AuthUtils.isEmpty(emailInput.getText().toString().trim()) &&
-                !AuthUtils.isEmpty(passwordInput.getText().toString().trim()) &&
-                !AuthUtils.isEmpty(confirmPasswordInput.getText().toString().trim())) {
+                !AuthUtils.isEmpty(Objects.requireNonNull(nameInput.getText()).toString().trim()) &&
+                !AuthUtils.isEmpty(Objects.requireNonNull(emailInput.getText()).toString().trim()) &&
+                !AuthUtils.isEmpty(Objects.requireNonNull(passwordInput.getText()).toString().trim()) &&
+                !AuthUtils.isEmpty(Objects.requireNonNull(confirmPasswordInput.getText()).toString().trim())) {
             String email = emailInput.getText().toString().trim();
             String password = passwordInput.getText().toString().trim();
             String confirmPassword = confirmPasswordInput.getText().toString().trim();
@@ -106,7 +106,7 @@ public class RegisterActivity extends BaseActivity {
                             goToNotes();
                         }  else {
                             AuthUtils.showToast(this, "Registration Failed: "
-                                    + task.getException().getMessage());
+                                    + Objects.requireNonNull(task.getException()).getMessage());
                         }
                     });
         } else {

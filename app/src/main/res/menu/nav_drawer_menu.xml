@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <group android:id="@+id/group_notes">
+        <item
+            android:id="@+id/nav_all_notes"
+            android:icon="@drawable/ic_notes"
+            android:title="All Notes" />
+        <item
+            android:id="@+id/nav_manage_categories"
+            android:icon="@drawable/ic_category"
+            android:title="Manage Categories" />
+    </group>
+
+    <group android:id="@+id/group_app">
+        <item
+            android:id="@+id/nav_settings"
+            android:icon="@drawable/ic_settings"
+            android:title="Settings" />
+        <item
+            android:id="@+id/nav_about"
+            android:icon="@drawable/ic_info"
+            android:title="About" />
+    </group>
+
+    <group android:id="@+id/group_auth">
+        <item
+            android:id="@+id/nav_login"
+            android:icon="@drawable/ic_login"
+            android:title="Login / Sign Up" />
+        <item
+            android:id="@+id/nav_logout"
+            android:icon="@drawable/ic_logout"
+            android:title="Logout"
+            android:visible="false" /> </group>
+</menu>

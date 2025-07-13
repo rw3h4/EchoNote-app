@@ -1,0 +1,7 @@
+<resources>
+    <declare-styleable name="WaveformView">
+        <attr name="waveBarColor" format="color" />
+        <attr name="waveBarWidth" format="dimension" />
+        <attr name="waveBarGap" format="dimension" />
+    </declare-styleable>
+</resources>

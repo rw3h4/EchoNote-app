@@ -61,7 +61,10 @@ public class AddEditNoteViewModel extends AndroidViewModel {
                     existingNote.getCategoryId(),
                     existingNote.getTimestamp(),
                     System.currentTimeMillis(),
-                    existingNote.isPinned()
+                    existingNote.isPinned(),
+                    Note.NOTE_TYPE_TEXT,
+                    null,
+                    0
             );
         }
 

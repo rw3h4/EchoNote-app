@@ -77,7 +77,7 @@
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/alt_login_cardView"
-        android:layout_width="300dp"
+        android:layout_width="250dp"
         android:layout_height="48dp"
         android:layout_marginTop="24dp"
         android:layout_marginStart="16dp"
@@ -109,7 +109,7 @@
                 android:id="@+id/continue_google_textView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
+                android:layout_marginStart="10dp"
                 android:text="@string/continue_google"
                 android:textColor="@color/black"
                 android:textSize="16sp"
@@ -209,7 +209,6 @@
         app:boxCornerRadiusTopEnd="15dp"
         app:boxStrokeWidth="0dp"
         app:boxStrokeWidthFocused="0dp"
-        app:layout_constraintStart_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/email_textInputLayout">
