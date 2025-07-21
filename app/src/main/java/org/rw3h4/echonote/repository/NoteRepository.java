@@ -17,31 +17,30 @@ public class NoteRepository {
     private final NoteDao noteDao;
     private final ExecutorService databaseWriteExecutor;
 
-    private final LiveData<List<Note>> allNotes;
+    // private final LiveData<List<Note>> allNotes;
     private final LiveData<List<Category>> allCategories;
 
     public NoteRepository(Application application) {
         NoteDatabase db = NoteDatabase.getDatabase(application);
         noteDao = db.noteDao();
         databaseWriteExecutor = NoteDatabase.databaseWriteExecutor;
-        allNotes = noteDao.getAllNotes();
         allCategories = noteDao.getAllCategories();
     }
 
-    public LiveData<List<Note>> getAllNotes() {
-        return allNotes;
+    public LiveData<List<Note>> getAllNotes(String userId) {
+        return noteDao.getAllNotes(userId);
     }
 
-    public LiveData<List<Note>> searchNotes(String query) {
-        return noteDao.searchNotes(query);
+    public LiveData<List<Note>> searchNotes(String userId, String query) {
+        return noteDao.searchNotes(userId, query);
     }
 
-    public LiveData<List<Note>> getNotesByCategoryId(int categoryId) {
-        return noteDao.getNotesByCategoryId(categoryId);
+    public LiveData<List<Note>> getNotesByCategoryId(String userId, int categoryId) {
+        return noteDao.getNotesByCategoryId(userId, categoryId);
     }
 
-    public LiveData<List<Note>> getPinnedNotes() {
-        return noteDao.getPinnedNotes();
+    public LiveData<List<Note>> getPinnedNotes(String userId) {
+        return noteDao.getPinnedNotes(userId);
     }
 
     public LiveData<List<Category>> getAllCategories() {
@@ -69,7 +68,8 @@ public class NoteRepository {
                     noteToSave.isPinned(),
                     noteToSave.getNoteType(),
                     noteToSave.getFilePath(),
-                    noteToSave.getDuration()
+                    noteToSave.getDuration(),
+                    noteToSave.getUserId()
             );
 
             noteDao.insertNote(finalNote);

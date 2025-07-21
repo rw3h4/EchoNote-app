@@ -78,6 +78,8 @@ public class NotesActivity extends AppCompatActivity implements VoiceOptionsBott
 
         notesViewModel = new ViewModelProvider(this).get(NotesViewModel.class);
 
+        notesViewModel.loadNotesForCurrentUser();
+
         initializeViews();
         setupNavigationDrawer();
         setupRecyclerView();
@@ -184,8 +186,7 @@ public class NotesActivity extends AppCompatActivity implements VoiceOptionsBott
                     NoteWithCategory item = findNoteWithCategoryById(note.getId());
                     if (item == null) return;
                     Intent intent = new Intent(NotesActivity.this, ReadNoteActivity.class);
-                    intent.putExtra(ReadNoteActivity.EXTRA_NOTE, item.getNote());
-                    intent.putExtra(ReadNoteActivity.EXTRA_CATEGORY_NAME, item.getCategoryName());
+                    intent.putExtra("NOTE_WITH_CATEGORY_EXTRA", item);
                     startActivity(intent);
                 }
             }

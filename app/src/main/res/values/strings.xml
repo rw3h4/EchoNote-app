@@ -50,7 +50,7 @@
     <string name="attach_image">Attach Image or Document</string>
     <string name="take_photo">Take or Add Photo to Note</string>
     <string name="note_image">Note Image</string>
-    <string name="note_title">Note Title</string>
+    <string name="text_note_title">Text Note Title</string>
     <string name="category">Category</string>
     <string name="note_content_preview">Note content preview goes here, showing up to 3 lines only for clean layout.</string>
     <string name="timestamp">18 Jun 2025, 04:55 PM</string>
@@ -67,5 +67,6 @@
     <string name="discard_recording">Discard Recording</string>
     <string name="new_voice_note">New Voice Note</string>
     <string name="recording_duration">Duration of the recording</string>
+    <string name="text_note">Text Note</string>
 
 </resources>

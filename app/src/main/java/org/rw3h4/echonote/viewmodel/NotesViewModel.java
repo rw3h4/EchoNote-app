@@ -9,6 +9,8 @@ import androidx.lifecycle.MediatorLiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Transformations;
 
+import com.google.firebase.auth.FirebaseAuth;
+
 import org.rw3h4.echonote.data.local.model.Category;
 import org.rw3h4.echonote.data.local.model.Note;
 import org.rw3h4.echonote.data.local.model.NoteWithCategory;
@@ -23,6 +25,8 @@ import java.util.Objects;
 public class NotesViewModel extends AndroidViewModel {
     private final NoteRepository repository;
     public final LiveData<List<Category>> allCategories;
+
+    private final MutableLiveData<String> userId = new MutableLiveData<>();
 
     // Using Mutable Live Data. -1 represents "All Notes"
     private final MutableLiveData<Integer> filterCategoryId = new MutableLiveData<>(-1);
@@ -39,17 +43,32 @@ public class NotesViewModel extends AndroidViewModel {
         repository = new NoteRepository(application);
         allCategories = repository.getAllCategories();
 
-        LiveData<List<Note>> notesSource = Transformations.switchMap(filterCategoryId, categoryId -> {
-            if (categoryId == null || categoryId == -1) {
-                return repository.getAllNotes();
-            } else {
-                return repository.getNotesByCategoryId(categoryId);
+        LiveData<List<Note>> notesSource = Transformations.switchMap(userId, id ->
+                Transformations.switchMap(filterCategoryId, categoryId -> {
+            if (id == null) {
+                // return empty LiveData if no user is logged in
+                return new MutableLiveData<>(new ArrayList<>());
             }
-        });
+
+            if (categoryId == null || categoryId == -1) {
+                return repository.getAllNotes(id);
+            } else {
+                return repository.getNotesByCategoryId(id, categoryId);
+            }
+        }));
 
         // Mediate between the two sources using helper method combineData
         notesWithCategories.addSource(notesSource, notes -> combineData(notes, allCategories.getValue()));
-        notesWithCategories.addSource(allCategories, categories -> combineData(notesSource.getValue(), categories));
+        notesWithCategories.addSource(allCategories, categories ->
+                combineData(notesSource.getValue(), categories));
+    }
+
+    public void loadNotesForCurrentUser() {
+        String currentUserId = FirebaseAuth.getInstance().getCurrentUser() != null ?
+                FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
+        if (currentUserId !=  null) {
+            userId.setValue(currentUserId);
+        }
     }
 
     private void combineData(List<Note> notes, List<Category> categories) {
@@ -79,7 +98,12 @@ public class NotesViewModel extends AndroidViewModel {
     }
 
     public LiveData<List<Note>> searchNotes(String query) {
-        return repository.searchNotes(query);
+        String currentUserId = userId.getValue();
+        if (currentUserId == null) {
+            return new MutableLiveData<>(new ArrayList<>());
+        }
+
+        return repository.searchNotes(currentUserId, query);
     }
 
     public void delete(Note note) {

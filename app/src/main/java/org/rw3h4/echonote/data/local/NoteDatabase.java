@@ -14,7 +14,7 @@ import org.rw3h4.echonote.data.local.model.Note;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-@Database(entities = {Note.class, Category.class}, version = 2, exportSchema = false)
+@Database(entities = {Note.class, Category.class}, version = 3, exportSchema = false)
 public abstract class NoteDatabase extends RoomDatabase {
 
     public abstract NoteDao noteDao();

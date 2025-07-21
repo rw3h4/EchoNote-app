@@ -81,10 +81,13 @@ public class Note implements Parcelable {
     @ColumnInfo(name = "duration")
     private final long duration; // in milliseconds
 
+    @ColumnInfo(name = "user_id")
+    private final String userId;
+
     // Primary Room constructor
     public Note(int id, @NonNull String title, @NonNull String content, int categoryId,
                 long timestamp, long lastEdited, boolean isPinned, @NonNull String noteType,
-                @Nullable String filePath, long duration
+                @Nullable String filePath, long duration, @Nullable String userId
     ) {
         this.id = id;
         this.title = title;
@@ -96,15 +99,17 @@ public class Note implements Parcelable {
         this.noteType  = noteType;
         this.filePath = filePath;
         this.duration = duration;
+        this.userId = userId;
     }
 
     // Convenience contructor for creating new TEXT Note
     @Ignore
-    public Note(@NonNull String title, @NonNull String content, int categoryId) {
+    public Note(@NonNull String title, @NonNull String content, int categoryId, @NonNull String userId) {
         this.id = 0;
         this.title = title;
         this.content = content;
         this.categoryId = categoryId;
+        this.userId = userId;
         long currentTime = System.currentTimeMillis();
         this.timestamp = currentTime;
         this.lastEdited = currentTime;
@@ -116,12 +121,13 @@ public class Note implements Parcelable {
 
     // Convenience constructor for creating a new VOICE Note
     @Ignore
-    public Note(@NonNull String title, int categoryId, @NonNull String filePath, long duration) {
+    public Note(@NonNull String title, int categoryId, @NonNull String filePath, long duration, @NonNull String userId) {
         this.id = 0;
         this.title = title;
         this.categoryId = categoryId;
         this.filePath = filePath;
         this.duration = duration;
+        this.userId = userId;
         long currentTime = System.currentTimeMillis();
         this.timestamp = currentTime;
         this.lastEdited = currentTime;
@@ -133,7 +139,7 @@ public class Note implements Parcelable {
     protected Note(Parcel in) {
         id = in.readInt();
         title = Objects.requireNonNull(in.readString());
-        content = Objects.requireNonNull(in.readString());
+        content = in.readString();
         categoryId = in.readInt();
         timestamp = in.readLong();
         lastEdited = in.readLong();
@@ -141,6 +147,7 @@ public class Note implements Parcelable {
         noteType = Objects.requireNonNull(in.readString());
         filePath = in.readString();
         duration = in.readLong();
+        userId = in.readString();
     }
 
     @Override
@@ -155,6 +162,7 @@ public class Note implements Parcelable {
         dest.writeString(noteType);
         dest.writeString(filePath);
         dest.writeLong(duration);
+        dest.writeString(userId);
     }
 
     @Override
@@ -174,6 +182,7 @@ public class Note implements Parcelable {
         }
     };
 
+    @Nullable public String getUserId() { return userId; }
 
     public int getId() { return id; }
 
@@ -216,14 +225,15 @@ public class Note implements Parcelable {
                 title.equals(note.title) &&
                 Objects.equals(content, note.content) &&
                 noteType.equals(note.noteType) &&
-                Objects.equals(filePath, note.filePath);
+                Objects.equals(filePath, note.filePath) &&
+                Objects.equals(userId, note.userId);
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(
                 id, title, content, categoryId, timestamp, lastEdited, isPinned,
-                noteType, filePath, duration
+                noteType, filePath, duration, userId
         );
     }
 

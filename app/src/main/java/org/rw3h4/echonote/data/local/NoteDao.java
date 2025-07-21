@@ -34,17 +34,19 @@ public interface NoteDao {
     @Query("SELECT * FROM categories ORDER BY category_name ASC")
     LiveData<List<Category>> getAllCategories();
 
-    @Query("SELECT * FROM notes ORDER BY is_pinned DESC, last_edited DESC")
-    LiveData<List<Note>> getAllNotes();
+    @Query("SELECT * FROM notes WHERE user_id = :userId ORDER BY is_pinned DESC, last_edited DESC")
+    LiveData<List<Note>> getAllNotes(String userId);
 
-    @Query("SELECT * FROM notes WHERE note_title LIKE '%' || :query || '%' OR note_content LIKE '%' || :query || '%' ORDER BY is_pinned DESC, last_edited DESC")
-    LiveData<List<Note>> searchNotes(String query);
+    @Query("SELECT * FROM notes WHERE user_id = :userId AND (note_title LIKE :query OR note_content " +
+            "LIKE :query) ORDER BY last_edited DESC")
+    LiveData<List<Note>> searchNotes(String userId, String query);
 
-    @Query("SELECT * FROM notes WHERE note_category_id = :categoryId ORDER BY is_pinned DESC, last_edited DESC")
-    LiveData<List<Note>> getNotesByCategoryId(int categoryId);
+    @Query("SELECT * FROM notes WHERE user_id = :userId AND note_category_id = :categoryId " +
+            "ORDER BY is_pinned DESC, last_edited DESC")
+    LiveData<List<Note>> getNotesByCategoryId(String userId, int categoryId);
 
-    @Query("SELECT * FROM notes WHERE is_pinned = 1 ORDER BY last_edited DESC")
-    LiveData<List<Note>> getPinnedNotes();
+    @Query("SELECT * FROM notes WHERE user_id = :userId AND is_pinned = 1 ORDER BY last_edited DESC")
+    LiveData<List<Note>> getPinnedNotes(String userId);
 
     @Query("UPDATE notes SET is_pinned = :pinned WHERE note_id = :noteId")
     void updatePinStatus(int noteId, boolean pinned);

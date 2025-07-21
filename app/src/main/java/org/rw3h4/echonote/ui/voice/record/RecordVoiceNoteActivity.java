@@ -24,6 +24,8 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 import org.rw3h4.echonote.R;
 import org.rw3h4.echonote.data.local.model.Category;
@@ -187,7 +189,14 @@ public class RecordVoiceNoteActivity extends AppCompatActivity {
         String categoryName = categoryInput.getText().toString().trim();
         long duration = System.currentTimeMillis() - recordingStartTime;
 
-        viewModel.saveVoiceNote(title, categoryName, audioFilePath, duration);
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user ==  null) {
+            Toast.makeText(this, "Error: No user logged in.", Toast.LENGTH_SHORT).show();
+        }
+
+        String userId = user.getUid();
+
+        viewModel.saveVoiceNote(title, categoryName, audioFilePath, duration, userId);
     }
 
     private void discardAndFinish() {

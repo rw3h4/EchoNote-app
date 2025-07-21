@@ -35,7 +35,8 @@ public class RecordVoiceNoteViewModel extends AndroidViewModel {
     /**
      * Creates a new voice object and tells the repository to save it
      */
-    public void saveVoiceNote(String title, String categoryName, String filePath, long duration) {
+    public void saveVoiceNote(String title, String categoryName, String filePath, long duration,
+                              @NonNull String userId) {
         if (TextUtils.isEmpty(title)) {
             // Don't save notes without a title
             return;
@@ -43,7 +44,7 @@ public class RecordVoiceNoteViewModel extends AndroidViewModel {
 
         final String finalCategoryName = TextUtils.isEmpty(categoryName) ? "None" : categoryName;
 
-        Note noteToSave = new Note(title, 0, filePath, duration);
+        Note noteToSave = new Note(title, 0, filePath, duration, userId);
 
         repository.saveNoteWithCategory(noteToSave, finalCategoryName);
         saveFinished.setValue(true);

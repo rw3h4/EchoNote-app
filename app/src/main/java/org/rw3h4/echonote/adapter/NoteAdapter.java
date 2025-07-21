@@ -90,7 +90,7 @@ public class NoteAdapter extends ListAdapter<NoteWithCategory, RecyclerView.View
     }
 
     private String formatDuration(long millis) {
-        return String.format(Locale.ROOT, "%01d:%02d",
+        return String.format(Locale.getDefault(), "%01d:%02d",
                 TimeUnit.MILLISECONDS.toMinutes(millis),
                 TimeUnit.MILLISECONDS.toSeconds(millis) -
                         TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millis))
@@ -107,34 +107,38 @@ public class NoteAdapter extends ListAdapter<NoteWithCategory, RecyclerView.View
             categoryTextView = itemView.findViewById(R.id.note_category);
             contentTextView = itemView.findViewById(R.id.note_content);
             timestampTextView = itemView.findViewById(R.id.note_timestamp);
-            pinIcon = itemView.findViewById(R.id.pin_icon_imageview);
+            pinIcon = itemView.findViewById(R.id.pin_icon_imageView);
         }
 
         void bind(final NoteWithCategory item, final OnNoteClickListener listener) {
             Note note = item.getNote();
             titleTextView.setText(note.getTitle());
             categoryTextView.setText(item.getCategoryName());
-            pinIcon.setVisibility(note.isPinned() ? View.VISIBLE : View.GONE);
+            pinIcon.setActivated(note.isPinned());
 
             GlideImageGetter imageGetter = new GlideImageGetter(itemView.getContext(), contentTextView);
-            CharSequence spannedText = Html.fromHtml(note.getContent(), Html.FROM_HTML_MODE_COMPACT, imageGetter, null);
-            contentTextView.setText(spannedText);
-            contentTextView.setMovementMethod(LinkMovementMethod.getInstance());
+            if (note.getContent() != null) {
+                CharSequence spannedText = Html.fromHtml(note.getContent(),
+                        Html.FROM_HTML_MODE_COMPACT, imageGetter, null);
+                contentTextView.setText(spannedText);
+                contentTextView.setMovementMethod(LinkMovementMethod.getInstance());
+            }
 
             long timeToUse = note.getLastEdited() > 0 ? note.getLastEdited() : note.getTimestamp();
-            String formattedTime = DateFormat.format("dd MMMM, hh:mm a", new Date(timeToUse)).toString();
+            String formattedTime = DateFormat.format("dd MMMM, hh:mm a",
+                    new Date(timeToUse)).toString();
             timestampTextView.setText(formattedTime);
 
             itemView.setOnClickListener(v -> listener.onNoteClick(note));
             itemView.setOnLongClickListener(v -> {
-                listener.onNoteClick(note);
+                listener.onNoteLongClick(note);
                 return true;
             });
         }
     }
 
     class VoiceNoteViewHolder extends RecyclerView.ViewHolder {
-        TextView titleTextView, categoryTextView, durationTextView;
+        TextView titleTextView, categoryTextView, durationTextView, timestampTextView;
         ImageView pinIcon;
         ImageButton playPauseButton;
 
@@ -143,16 +147,22 @@ public class NoteAdapter extends ListAdapter<NoteWithCategory, RecyclerView.View
             titleTextView =  itemView.findViewById(R.id.note_title);
             categoryTextView = itemView.findViewById(R.id.note_category);
             durationTextView = itemView.findViewById(R.id.text_voice_duration);
-            pinIcon = itemView.findViewById(R.id.pin_icon_imageview);
+            pinIcon = itemView.findViewById(R.id.pin_icon_imageView);
             playPauseButton = itemView.findViewById(R.id.button_play_pause);
+            timestampTextView = itemView.findViewById(R.id.voice_note_timestamp);
         }
 
         void bind(final NoteWithCategory  item, final OnNoteClickListener  listener) {
             Note note = item.getNote();
             titleTextView.setText(note.getTitle());
             categoryTextView.setText(item.getCategoryName());
-            pinIcon.setVisibility(note.isPinned() ? View.VISIBLE : View.GONE);
             durationTextView.setText(formatDuration(note.getDuration()));
+
+            pinIcon.setActivated(note.isPinned());
+
+            long timeToUse = note.getLastEdited() > 0  ? note.getLastEdited() : note.getTimestamp();
+            String formattedTime = DateFormat.format("dd MMM", new Date(timeToUse)).toString();
+            timestampTextView.setText(formattedTime);
 
             itemView.setOnClickListener(v -> listener.onNoteClick(note));
             itemView.setOnLongClickListener(v -> {
