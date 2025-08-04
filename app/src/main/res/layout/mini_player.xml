@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mini_player_container"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="12dp"
+    android:visibility="gone"
+    app:cardBackgroundColor="#F4EEFF"
+    app:cardCornerRadius="24dp"
+    app:cardElevation="16dp"
+    app:strokeColor="#DCD6F7"
+    app:strokeWidth="2dp"
+    tools:visibility="visible">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="16dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="8dp">
+
+        <View
+            android:id="@+id/audio_indicator"
+            android:layout_width="4dp"
+            android:layout_height="0dp"
+            android:background="@drawable/audio_indicator_gradient"
+            app:layout_constraintBottom_toBottomOf="@id/play_button_card"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@id/play_button_card" />
+
+        <TextView
+            android:id="@+id/mini_player_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="12dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textAppearance="?attr/textAppearanceTitleMedium"
+            android:textColor="#424874"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="@id/play_button_card"
+            app:layout_constraintEnd_toStartOf="@+id/play_button_card"
+            app:layout_constraintStart_toEndOf="@id/audio_indicator"
+            app:layout_constraintTop_toTopOf="@id/play_button_card"
+            tools:text="My Voice Note Title" />
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/play_button_card"
+            android:layout_width="46dp"
+            android:layout_height="46dp"
+            app:cardBackgroundColor="#424874"
+            app:cardCornerRadius="23dp"
+            app:cardElevation="6dp"
+            app:layout_constraintEnd_toStartOf="@id/close_button_card"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <ImageButton
+                android:id="@+id/mini_player_play_pause_button"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/circular_ripple"
+                android:contentDescription="@string/play_pause"
+                android:padding="10dp"
+                android:scaleType="centerInside"
+                android:src="@drawable/ic_play_circle"
+                app:tint="#F4EEFF" />
+        </androidx.cardview.widget.CardView>
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/close_button_card"
+            android:layout_width="42dp"
+            android:layout_height="42dp"
+            android:layout_marginStart="8dp"
+            app:cardBackgroundColor="#DCD6F7"
+            app:cardCornerRadius="21dp"
+            app:cardElevation="4dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <ImageButton
+                android:id="@+id/mini_player_close_button"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/circular_ripple_subtle"
+                android:contentDescription="@string/close_button"
+                android:padding="10dp"
+                android:scaleType="centerInside"
+                android:src="@drawable/ic_close"
+                app:tint="#424874" />
+        </androidx.cardview.widget.CardView>
+
+        <TextView
+            android:id="@+id/mini_player_elapsed_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:textColor="#424874"
+            android:textSize="12sp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/play_button_card"
+            tools:text="0:15" />
+
+        <TextView
+            android:id="@+id/mini_player_remaining_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#424874"
+            android:textSize="12sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@id/mini_player_elapsed_time"
+            tools:text="-1:15" />
+
+        <SeekBar
+            android:id="@+id/mini_player_seek_bar"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="8dp"
+            android:progressBackgroundTint="#DCD6F7"
+            android:progressDrawable="@drawable/seekbar_progress"
+            android:thumb="@drawable/seekbar_thumb"
+            android:thumbTint="#424874"
+            app:layout_constraintBottom_toBottomOf="@id/mini_player_elapsed_time"
+            app:layout_constraintEnd_toStartOf="@id/mini_player_remaining_time"
+            app:layout_constraintStart_toEndOf="@id/mini_player_elapsed_time"
+            app:layout_constraintTop_toTopOf="@id/mini_player_elapsed_time" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</com.google.android.material.card.MaterialCardView>

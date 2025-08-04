@@ -16,11 +16,11 @@ plugins {
 }
 
 android {
-    namespace = "org.rw3h4.echonote"
+    namespace = "org.rw3h4.echonotex"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "org.rw3h4.echonote"
+        applicationId = "org.rw3h4.echonotex"
         minSdk = 26
         targetSdk = 36
         versionCode = 1
@@ -115,6 +115,9 @@ dependencies {
     // JSoup
     implementation(libs.jsoup)
 
+    // Material Icons Extended
+    implementation("androidx.compose.material:material-icons-extended")
+
     // Media3 + ExoPlayer
     implementation(libs.androidx.media3.exoplayer)
     implementation(libs.androidx.media3.session)
@@ -137,5 +140,3 @@ dependencies {
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
 }
-
-

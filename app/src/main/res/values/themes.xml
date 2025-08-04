@@ -19,12 +19,12 @@
 
         <item name="android:textColorPrimary">@color/black</item>
         <item name="android:textColorSecondary">@color/medium_grey</item>
-        <item name="colorAccent">@color/clickable_text</item>  </style>
+        <item name="colorAccent">@color/clickable_text</item>
+    </style>
 
     <style name="Theme.EchoNote" parent="Base.Theme.EchoNote" />
 
-    <style name="Widget.App.TextInputLayout"
-        parent="Widget.MaterialComponents.TextInputLayout.FilledBox">
+    <style name="Widget.App.TextInputLayout" parent="Widget.MaterialComponents.TextInputLayout.FilledBox">
         <item name="android:textColorHint">@color/black</item>
         <item name="boxBackgroundColor">@color/light_purple</item>
         <item name="boxStrokeWidth">0dp</item>
